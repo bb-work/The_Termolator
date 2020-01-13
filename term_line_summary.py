@@ -1,5 +1,6 @@
 from term_summary import *
 from make_language_model import *
+import json
 
 language_model_file = DICT_DIRECTORY + 'gen2_lang.model'
 profile_file = DICT_DIRECTORY + 'OANC.profile2'
@@ -37,7 +38,7 @@ def next_sentence_boundary(text):
         return(match.start()+1)
     else:
         return('nope')
-        
+
 def get_previous_line_break(text,end,max_distance=False):
     position = text[:end].rfind(os.linesep)
     sentence_boundary = re.compile('\. *[A-Z]')
@@ -119,13 +120,13 @@ def look_up_vector(cluster,vector_dict):
             return(vector_dict[cluster])
         else:
             return(False)
-            
+
 def get_cosine_score(cluster1,cluster2,vector_dict,score_dict):
     if isinstance(cluster1,int):
         new_set1 = set()
         new_set1.add(cluster1)
     else:
-        new_set1 = set(cluster1)   
+        new_set1 = set(cluster1)
     if isinstance(cluster2,int):
         new_set2 = set()
         new_set2.add(cluster2)
@@ -144,11 +145,11 @@ def get_cosine_score(cluster1,cluster2,vector_dict,score_dict):
         else:
             print('error: no vectors for',cluster1,'and/or',cluster2)
             return(0)
-            
+
             ### use tuples instead of single numbers for vectors
             ### for tuples, average of all individual vectors
-            
-            
+
+
 def average_vectors(new_cluster,vectors):
     new_vector = []
     if not 0 in vectors:
@@ -168,7 +169,7 @@ def make_cos_similar_clusters(vectors,cluster_num):
     clusters = []
     scores = {} ## scores is a dictionary of scores
     for key in list(vectors.keys()):
-        clusters.append((key)) 
+        clusters.append((key))
         ## keys are (ordered) tuples
         ## clusters is a list of tuples
     if len(clusters)<=cluster_num:
@@ -218,7 +219,7 @@ def choose_paragraphs_by_local_tfidf(paragraph_list,vector_size=10,cluster_num=3
     output = []
     number_of_paragraphs = len(paragraph_list)
     distribution_marker = [] ## word_list,idf_counts,centroid
-    idf_counts = {} 
+    idf_counts = {}
     ## from tokens to numbers, later divided by number of paragraphs
     tf_counts = {} ## from line IDs to words to counts
     vectors = {} ## from line IDs to vectors
@@ -301,7 +302,7 @@ def get_approximate_summaries_shelve(term,variants,distribution_marker=False,tra
     summaries = []
     substrings = []
     subseqs = []
-    word_list = term.split(' ')  
+    word_list = term.split(' ')
     if len(word_list) == 1:
         pass
     else:
@@ -324,7 +325,7 @@ def get_approximate_summaries_shelve(term,variants,distribution_marker=False,tra
             if substring in substr2:
                 found = True
         if found:
-            continue        
+            continue
         summary = get_first_paragraph_from_wikipedia_xml_shelve(substring,variants=variants,quiet=True,distribution_marker=distribution_marker,trace=trace)
         if summary:
             summaries.append([substring,summary])
@@ -338,7 +339,7 @@ def choose_items_randomly(sequence,number):
     return(output)
 
 fixed_term_set_list = []
-    
+
 def get_next_term_map_entry(instream):
     stop = False
     term = False
@@ -361,7 +362,7 @@ def get_next_term_map_entry(instream):
                 print('error in get_next_term_map_entry on line',next_line)
             else:
                 term = term_match.group(1)
-                variants = variants_match.group(1).split('|')                
+                variants = variants_match.group(1).split('|')
         elif re.search('<instance',next_line):
             instance_match = file_start_end_pattern.search(next_line)
             if not instance_match:
@@ -385,7 +386,7 @@ def get_term_dict_from_map_file(term_map_file):
             else:
                 keep_going = False
     return(term_dict)
-    
+
 def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_file_directory,txt_file_list=False,model_file=language_model_file,profile_file=profile_file,test_on_n_terms=False,cluster_sample_strategy='big_centroid_max',choose_terms_randomly=False,fixed_term_set=False,txt_file_type='.txt3',trace=False):
     global term_dict
     global fixed_term_set_list
@@ -397,7 +398,7 @@ def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_fil
     terms = list(term_dict.keys())
     terms.sort()
     load_language_model(model_file,profile_file)
-    outstream = open(summary_outfile,'w')
+    #outstream = open(summary_outfile,'w')
     if test_on_n_terms:
         if choose_terms_randomly:
            terms = choose_items_randomly(terms,test_on_n_terms)
@@ -406,15 +407,20 @@ def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_fil
             terms = fixed_term_set_list
         else:
            terms = terms[:test_on_n_terms]
+
+    output_dict = {}
+
     for term in terms:
+        output_term_obj = {}
+
         variants =term_dict[term]['variants']
         if not term in variants:
             variants = [term]+variants
         if trace:
             print('Term',term)
-        outstream.write('*************************************\n')
-        outstream.write('Term Summary for "'+term+'"\n')
-        outstream.write('*************************************\n\n')
+        # outstream.write('*************************************\n')
+        # outstream.write('Term Summary for "'+term+'"\n')
+        # outstream.write('*************************************\n\n')
         entry = term_dict[term]
         selection1 = []
         distribution_marker = False
@@ -422,7 +428,7 @@ def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_fil
         term_paragraphs = []
         for instance_triple in entry['instances']:
             term_paragraph = get_term_paragraph_from_term_map(instance_triple,text_file_directory,txt_file_list=txt_file_list,txt_file_type=txt_file_type)
-            term_paragraphs.append(term_paragraph)                
+            term_paragraphs.append(term_paragraph)
         ## pairs of the form [file,paragraph]
         if len(term_paragraphs)>0:
             stages.append(1)
@@ -446,28 +452,41 @@ def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_fil
         else:
             approximate_summaries = False
         if wiki_summary:
-            outstream.write('Wikipedia First Paragraph for "'+term+'"\n\n')
-            outstream.write(wiki_summary)
-            outstream.write('\n\n')
+            output_term_obj['wiki_summary'] = wiki_summary
+
+            # outstream.write('Wikipedia First Paragraph for "'+term+'"\n\n')
+            # outstream.write(wiki_summary)
+            # outstream.write('\n\n')
         elif approximate_summaries:
-            outstream.write('Wikipedia First Paragraph for substrings of "'+term+'"\n\n')
-            for subterm,summary in approximate_summaries:
-                outstream.write('Wikipedia First Paragraph for "'+subterm+'"\n\n')
-                outstream.write(summary)
-                outstream.write('\n\n')
+            # outstream.write('Wikipedia First Paragraph for substrings of "'+term+'"\n\n')
+            output_term_obj['approximate_summaries'] = approximate_summaries
+            # for subterm,summary in approximate_summaries:
+            #     outstream.write('Wikipedia First Paragraph for "'+subterm+'"\n\n')
+            #     outstream.write(summary)
+            #     outstream.write('\n\n')
         else:
-            outstream.write('No Wikipedia Entry Found')
-            outstream.write('\n\n')
+            # outstream.write('No Wikipedia Entry Found')
+            # outstream.write('\n\n')
+            print('No wiki entry found')
         if len(selection1)> 0:
-            outstream.write('Sample Passages mentioning the term:"'\
-                            +term+'"\n\n')
+            passages = {}
+
+            # outstream.write('Sample Passages mentioning the term:"'\
+            #                 +term+'"\n\n')
             for paragraph,infile in selection1:
-                outstream.write('From file: '+infile+': ')
-                outstream.write(paragraph+'\n')
-            outstream.write('*********************************************\n\n')
+                filename = infile.split('/')[-1]
+                passages[filename] = paragraph
+            #     outstream.write('From file: '+infile+': ')
+            #     outstream.write(paragraph+'\n')
+            # outstream.write('*********************************************\n\n')
+            output_term_obj['passages'] = passages
         else:
-            outstream.write('No Sample Passages Found\n')
-    outstream.close()        
+            #outstream.write('No Sample Passages Found\n')
+            print("No sample passages found")
+        output_dict[term] = output_term_obj
+    with open(summary_outfile,'w') as outfile:
+        json.dump(output_dict, outfile)
+    #outstream.close()
 
 
 
