@@ -262,10 +262,10 @@ def get_first_paragraph_from_wikipedia_xml_shelve(term,variants=[],paragraph_dir
     ##    (I guess it is possible to copy shelve files though).
     global DICT_DIRECTORY
     
-    if paragraph_directory:
-        paragraph_directory = DICT_DIRECTORY + paragraph_directory
-    if redirect_file:
-        redirect_file = DICT_DIRECTORY + redirect_file
+    #if paragraph_directory:
+    #    paragraph_directory = DICT_DIRECTORY + paragraph_directory
+    #if redirect_file:
+    #    redirect_file = DICT_DIRECTORY + redirect_file
     if shelve_file:
         shelve_file = DICT_DIRECTORY + shelve_file
     if shelve_redirect_file:
