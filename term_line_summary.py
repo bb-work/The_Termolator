@@ -295,7 +295,7 @@ def one_word_filter(word):
 
 
 def get_approximate_summaries_shelve(term,variants,distribution_marker=False,
-                                     trace=False, paragraph_dir='wiki-extractor-output',
+                                     trace=False, paragraph_directory='wiki-extractor-output',
                                      redirect_file='wiki-basic-output/articles.csv'):
     clean_term = term.strip('\'";:-_+=`?')
     if clean_term != term:
