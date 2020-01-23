@@ -299,7 +299,7 @@ def get_approximate_summaries_shelve(term,variants,distribution_marker=False,
                                      redirect_file='wiki-basic-output/articles.csv'):
     clean_term = term.strip('\'";:-_+=`?')
     if clean_term != term:
-        possible_paragraph = get_first_paragraph_from_wikipedia_xml_shelve(clean_term,quiet=True,distribution_marker=distribution_marker,trace=trace, paragraph_directory=paragraph_dir, redirect_file=redirect_file)
+        possible_paragraph = get_first_paragraph_from_wikipedia_xml_shelve(clean_term,quiet=True,distribution_marker=distribution_marker,trace=trace, paragraph_directory=paragraph_directory, redirect_file=redirect_file)
         if possible_paragraph:
             return([[clean_term,possible_paragraph]])
     summaries = []
@@ -329,7 +329,7 @@ def get_approximate_summaries_shelve(term,variants,distribution_marker=False,
                 found = True
         if found:
             continue
-        summary = get_first_paragraph_from_wikipedia_xml_shelve(substring,variants=variants,quiet=True,distribution_marker=distribution_marker,trace=trace, paragraph_directory=paragraph_dir, redirect_file=redirect_file)
+        summary = get_first_paragraph_from_wikipedia_xml_shelve(substring,variants=variants,quiet=True,distribution_marker=distribution_marker,trace=trace, paragraph_directory=paragraph_directory, redirect_file=redirect_file)
         if summary:
             summaries.append([substring,summary])
     return(summaries)
