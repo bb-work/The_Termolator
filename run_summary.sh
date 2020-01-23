@@ -10,5 +10,7 @@
 ##
 ## $4 = the file type of the text files:  txt3 is typical for Termolator files,
 ## but txt2 or txt is also possible
+## $5 = the directory where paragraphs are (default: wiki-extractor-output)
+## $6 - the redirect file (default: wiki-basic-output/articles.csv)
 
-python3 $3/run_summary.py $1 $2 $4
+python3 $3/run_summary.py $1 $2 $4 $5 $6

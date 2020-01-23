@@ -293,10 +293,13 @@ def one_word_filter(word):
     else:
         return(False)
 
-def get_approximate_summaries_shelve(term,variants,distribution_marker=False,trace=False):
+
+def get_approximate_summaries_shelve(term,variants,distribution_marker=False,
+                                     trace=False, paragraph_dir='wiki-extractor-output',
+                                     redirect_file='wiki-basic-output/articles.csv'):
     clean_term = term.strip('\'";:-_+=`?')
     if clean_term != term:
-        possible_paragraph = get_first_paragraph_from_wikipedia_xml_shelve(clean_term,quiet=True,distribution_marker=distribution_marker,trace=trace)
+        possible_paragraph = get_first_paragraph_from_wikipedia_xml_shelve(clean_term,quiet=True,distribution_marker=distribution_marker,trace=trace, paragraph_directory=paragraph_dir, redirect_file=redirect_file)
         if possible_paragraph:
             return([[clean_term,possible_paragraph]])
     summaries = []
@@ -326,7 +329,7 @@ def get_approximate_summaries_shelve(term,variants,distribution_marker=False,tra
                 found = True
         if found:
             continue
-        summary = get_first_paragraph_from_wikipedia_xml_shelve(substring,variants=variants,quiet=True,distribution_marker=distribution_marker,trace=trace)
+        summary = get_first_paragraph_from_wikipedia_xml_shelve(substring,variants=variants,quiet=True,distribution_marker=distribution_marker,trace=trace, paragraph_directory=paragraph_dir, redirect_file=redirect_file)
         if summary:
             summaries.append([substring,summary])
     return(summaries)
@@ -387,7 +390,21 @@ def get_term_dict_from_map_file(term_map_file):
                 keep_going = False
     return(term_dict)
 
-def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_file_directory,txt_file_list=False,model_file=language_model_file,profile_file=profile_file,test_on_n_terms=False,cluster_sample_strategy='big_centroid_max',choose_terms_randomly=False,fixed_term_set=False,txt_file_type='.txt3',trace=False):
+
+def generate_summaries_from_term_file_map(term_map_file,
+                                          summary_outfile,
+                                          text_file_directory,
+                                          txt_file_list=False,
+                                          model_file=language_model_file,
+                                          profile_file=profile_file,
+                                          test_on_n_terms=False,
+                                          cluster_sample_strategy='big_centroid_max',
+                                          choose_terms_randomly=False,
+                                          fixed_term_set=False,
+                                          txt_file_type='.txt3',
+                                          trace=False,
+                                          paragraph_dir='wiki-extractor-output',
+                                          redirect_file='wiki-basic-output/articles.csv'):
     global term_dict
     global fixed_term_set_list
     if not txt_file_type.startswith('.'):
@@ -446,9 +463,9 @@ def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_fil
             ## filter one word terms that are not "normal" enough
             wiki_summary = False
         else:
-            wiki_summary = get_first_paragraph_from_wikipedia_xml_shelve(term,variants=variants,quiet=True,distribution_marker=distribution_marker,trace=trace)
+            wiki_summary = get_first_paragraph_from_wikipedia_xml_shelve(term,variants=variants,quiet=True,distribution_marker=distribution_marker,trace=trace, paragraph_directory=paragraph_dir, redirect_file=redirect_file)
         if (not wiki_summary):
-            approximate_summaries = get_approximate_summaries_shelve(term,variants,distribution_marker=distribution_marker)
+            approximate_summaries = get_approximate_summaries_shelve(term,variants,distribution_marker=distribution_marker, paragraph_directory=paragraph_dir, redirect_file=redirect_file)
         else:
             approximate_summaries = False
         if wiki_summary:
