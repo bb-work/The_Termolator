@@ -1,4 +1,4 @@
-These prgrams were developed on some linux machines, but tested on a
+These programs were developed on some linux machines, but tested on a
 few linux machines and one MacBook Air. For the current version of the
 program, the MAC (1.7 Core i7, 8 RAM), turned out not to have enough
 memory to create shelve (slv) files from a Wikipedia dump, although
@@ -45,16 +45,17 @@ B. The Summary Creation Program -- this program creates glossary-like
 
    A) Get a Wikipedia .xml file:
 
-   I downloaded the enwiki-20190101-pages-articles-multistream.xml
-   file and used this as my main input file, but
-   a more current version (if available) would be advisable.
-   There are a number of sources that you can go to get such files, e.g., see
-   https://dumps.wikimedia.org/enwiki/20190901/
-   for a bz2 file.  I found that
-   "wget https://dumps.wikimedia.org/enwiki/20190901/enwiki-20190101-pages-articles-multistream.xml.bz2"
-   was more effective than downloading using a web browser (which kept stalling).  
-   There are alternatives using torents, e.g.,
-   https://meta.wikimedia.org/wiki/Data_dump_torrents/en#English_Wikipedia
+I suggest downloading the file from:
+
+https://meta.wikimedia.org/wiki/Data_dump_torrents#English_Wikipedia
+
+I have so far tested the program with the following 2 files:
+     enwiki-20190101-pages-articles-multistream.xml
+	and
+     enwiki-20200401-pages-articles-multistream.xml
+In both cases the files were around 16-17gb and I used torrents. There
+seem to be some similarly named files that are much smaller 3-6gb and that
+do not work. They seem to contain different information. So beware     
 
    B) Download the wiki-basic-stream.py from github:
       https://github.com/jeffheaton/article-code/blob/master/python/wikipedia/wiki-basic-stream.py
@@ -97,7 +98,7 @@ B. The Summary Creation Program -- this program creates glossary-like
 2) To run the Summary program, first run Termolator and the term map
 program descried above. The output of the term map program will be
 input to this program. Then use the script run_summary.sh with the
-following two arguments:
+following arguments:
 
    -- The first argument is a prefix 
       -- there should be a .term_instance_map file with that prefix to use as input
