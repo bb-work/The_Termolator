@@ -351,6 +351,7 @@ def get_next_term_map_entry(instream):
     term_string_pattern = re.compile('<term string="([^"]*)"')
     variants_pattern = re.compile('variants="([^"]*)"')
     file_start_end_pattern = re.compile('file="([^"]*)" *start=([0-9]+) *end=([0-9]+)')
+    rank_pattern = re.compile('rank=([0-9]+)')
     while not stop:
         next_line = instream.readline()
         next_line = next_line.strip(os.linesep)
@@ -361,11 +362,14 @@ def get_next_term_map_entry(instream):
         elif re.search('<term',next_line):
             term_match = term_string_pattern.search(next_line)
             variants_match = variants_pattern.search(next_line)
+            rank_match = rank_pattern.search(next_line)
             if (not term_match) or (not variants_match):
                 print('error in get_next_term_map_entry on line',next_line)
             else:
                 term = term_match.group(1)
                 variants = variants_match.group(1).split('|')
+            if rank_match:
+                rank = int(rank_match.group(1))
         elif re.search('<instance',next_line):
             instance_match = file_start_end_pattern.search(next_line)
             if not instance_match:
@@ -375,7 +379,7 @@ def get_next_term_map_entry(instream):
             instance = [instance_match.group(1),instance_match.group(2),instance_match.group(3)]
             instances.append(instance)
     if term:
-        entry = {'variants':variants,'instances':instances}
+        entry = {'rank':rank,'variants':variants,'instances':instances}
     return(term,entry)
 
 def get_term_dict_from_map_file(term_map_file):
@@ -430,6 +434,8 @@ def generate_summaries_from_term_file_map(term_map_file,
     for term in terms:
         output_term_obj = {}
 
+def write_terms(outstream,terms,text_file_directory,txt_file_list,txt_file_type,cluster_sample_strategy,trace=False):
+    for term in terms:
         variants =term_dict[term]['variants']
         if not term in variants:
             variants = [term]+variants
@@ -499,11 +505,58 @@ def generate_summaries_from_term_file_map(term_map_file,
             output_term_obj['passages'] = passages
         else:
             #outstream.write('No Sample Passages Found\n')
-            print("No sample passages found")
+
+def log_10_termset(terms):
+    import math
+    length = len(terms)
+    log_length = round(math.log(length,10))
+    sets = []
+    start = 0
+    for exponent in range(1,log_length+1):
+        end = (10**exponent)
+        if length<=end:
+        else:
+            sets.append(terms[start:end])
+            start = end
+    return(sets)
+    ##
         output_dict[term] = output_term_obj
-    with open(summary_outfile,'w') as outfile:
-        json.dump(output_dict, outfile)
+    
+def generate_summaries_from_term_file_map(term_map_file,summary_outfile,text_file_directory,txt_file_list=False,model_file=language_model_file,profile_file=profile_file,test_on_n_terms=False,cluster_sample_strategy='big_centroid_max',choose_terms_randomly=False,fixed_term_set=False,txt_file_type='.txt3',trace=False,breakdown_by_log_10 = False):
+    global term_dict
+    global fixed_term_set_list
+        txt_file_type = "." + txt_file_type
+    print('Loading term dict')
+    term_dict = get_term_dict_from_map_file(term_map_file)
+    terms = list(term_dict.keys())
+    load_language_model(model_file,profile_file)
+    outstream = open(summary_outfile,'w')
+    terms.sort(key = lambda key: term_dict[key]['rank'])
+    if breakdown_by_log_10:
+        first_item = 1
+        log_level = 1
+        termsets = log_10_termset(terms)
+        for termset in termsets:
+            outstream.write('*********************************************\n\n')
+            outstream.write('Terms '+str(first_item)+' to '+ str(10**log_level)+'\n')
+            outstream.write('*********************************************\n\n')
+            first_item = 1 + (10**log_level)
+            log_level +=1
+            termset.sort()
+            write_terms(outstream,termset,text_file_directory,txt_file_list,txt_file_type,cluster_sample_strategy,trace=trace)
+    else:
+        terms.sort()
+        if test_on_n_terms:
+            if choose_terms_randomly:
+               terms = choose_items_randomly(terms,test_on_n_terms)
+               fixed_term_set_list = terms[:]
+            elif fixed_term_set and (len(fixed_term_set_list)>0):
+                terms = fixed_term_set_list
+            else:
+               terms = terms[:test_on_n_terms]
+        write_terms(outstream,terms,text_file_directory,txt_file_list,txt_file_type,cluster_sample_strategy,trace=trace)
     #outstream.close()
 
+    
 
 
